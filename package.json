@@ -1,0 +1,23 @@
+{
+  "name": "cordova-plugin-calendarsync",
+  "version": "0.0.1-dev",
+  "description": "Cordova calendar syncadapter plugin",
+  "cordova": {
+    "id": "io.cozy.calendarsync",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jacquarg/cordova-plugin-calendarsync.git"
+  },
+  "keywords": [
+    "cordova",
+    "calendar",
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "author": "Cozy.io",
+  "license": "AGPLv3"
+}
