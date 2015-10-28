@@ -185,34 +185,73 @@ public class CalendarSyncManager extends CordovaPlugin {
         else if (action.equals("all")) {
             final String accountName = args.getString(0);
             final String accountType = args.getString(1);
-            JSONArray calendars = calendarAccessor.all(
-                accountType, accountName, false);
+            JSONArray calendars = calendarAccessor.all(accountType, accountName);
 
             callbackContext.success(calendars);
         }
-        else if (action.equals("dirties")) {
-            final String accountName = args.getString(0);
-            final String accountType = args.getString(1);
-            JSONArray calendars = calendarAccessor.all(
-                accountType, accountName, true);
+        else if (action.equals("dirtyEvents")) {
+            final String accountType = args.getString(0);
+            final String accountName = args.getString(1);
+            JSONArray events = calendarAccessor.dirtyEvents(
+                accountType, accountName);
 
-            callbackContext.success(calendars);
-        }
-        else if (action.equals("add")) {
+            callbackContext.success(events);
+
+        } else if (action.equals("eventBySyncId")) {
+            final String syncId = args.getString(0);
+            JSONArray events = calendarAccessor.eventBySyncId(syncId);
+            callbackContext.success(events);
+
+        } else if (action.equals("addEvent")) {
             final JSONObject event = args.getJSONObject(0);
             final String accountType = args.getString(1);
             final String accountName = args.getString(2);
             String eventId = calendarAccessor.addEvent(event, accountType, accountName);
             callbackContext.success(eventId);
-        }
-        else if (action.equals("update")) {
+
+        } else if (action.equals("updateEvent")) {
             final JSONObject event = args.getJSONObject(0);
             final String accountType = args.getString(1);
             final String accountName = args.getString(2);
             calendarAccessor.updateEvent(event, accountType, accountName);
             callbackContext.success();
-        }
-        else {
+
+        } else if (action.equals("undirtyEvent")) {
+            final JSONObject event = args.getJSONObject(0);
+            final String accountType = args.getString(1);
+            final String accountName = args.getString(2);
+            calendarAccessor.undirtyEvent(event, accountType, accountName);
+            callbackContext.success();
+
+
+        } else if (action.equals("deleteEvent")) {
+            final JSONObject event = args.getJSONObject(0);
+            final String accountType = args.getString(1);
+            final String accountName = args.getString(2);
+            int deletedCount = calendarAccessor.deleteEvent(event, accountType, accountName);
+            callbackContext.success(deletedCount);
+
+
+        } else if (action.equals("allCalendars")) {
+            final String accountType = args.getString(0);
+            final String accountName = args.getString(1);
+            JSONArray calendars = calendarAccessor.getCalendars(accountType, accountName);
+            callbackContext.success(calendars);
+
+        } else if (action.equals("addCalendar")) {
+            final JSONObject calendar = args.getJSONObject(0);
+            final String accountType = args.getString(1);
+            final String accountName = args.getString(2);
+            String calendarId = calendarAccessor.addCalendar(calendar, accountType, accountName);
+            callbackContext.success(calendarId);
+
+        } else if (action.equals("deleteCalendar")) {
+            final JSONObject calendar = args.getJSONObject(0);
+            final String accountType = args.getString(1);
+            final String accountName = args.getString(2);
+            int deletedCount = calendarAccessor.deleteCalendar(calendar, accountType, accountName);
+            callbackContext.success(deletedCount);
+        } else {
             return false;
         }
         return true;

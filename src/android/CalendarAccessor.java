@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import android.text.TextUtils;
 import android.net.Uri;
 import android.database.Cursor;
 import android.content.ContentResolver;
@@ -94,6 +95,7 @@ public class CalendarAccessor {
         Events.CUSTOM_APP_URI,
         Events.UID_2445,
         Events.DIRTY,
+        Events.DELETED,
         Events.MUTATORS,
         Events._SYNC_ID,
         Events.SYNC_DATA1,
@@ -139,13 +141,23 @@ public class CalendarAccessor {
 
         if (c.moveToFirst()) {
             do {
-                result.put(row2JSON(c, ATTENDEE_ROWS));
+                result.put(row2JSON(c, rowNames));
             } while (c.moveToNext());
         }
         return result;
     }
 
     private JSONObject row2JSON(Cursor c, String[] rowNames) {
+
+        String str = "";
+        for (String columnName : c.getColumnNames()) {
+            str += columnName;
+            str += ": ";
+            str += c.getString(c.getColumnIndex(columnName));
+            str += " ; ";
+        }
+        Log.i(LOG_TAG, str);
+
         JSONObject event = new JSONObject();
         for (String name : rowNames) {
             int index = c.getColumnIndex(name);
@@ -156,10 +168,10 @@ public class CalendarAccessor {
                 switch(c.getType(index)) {
                     case Cursor.FIELD_TYPE_NULL: break; // pass
                     case Cursor.FIELD_TYPE_INTEGER:
-                        event.put(name, c.getInt(index));
+                        event.put(name, c.getLong(index));
                         break;
                     case Cursor.FIELD_TYPE_FLOAT:
-                            event.put(name, c.getFloat(index));
+                            event.put(name, c.getDouble(index));
                         break;
                     case Cursor.FIELD_TYPE_STRING:
                             event.put(name, c.getString(index));
@@ -227,7 +239,6 @@ public class CalendarAccessor {
         JSONObject event = row2JSON(c, EVENT_ROWS);
         try {
             event.put("attendees", getAttendees(event.getInt(Events._ID)));
-
             event.put("reminders", getReminders(event.getInt(Events._ID)));
         } catch (JSONException e) { Log.w(LOG_TAG, e); }
 
@@ -236,19 +247,41 @@ public class CalendarAccessor {
 
 
     /** Fetch all calendars of the specified account */
-    private JSONArray getCalendars(String accountType, String accountName) {
+    public JSONArray getCalendars(String accountType, String accountName) {
         // Fetch all calendars with specified account type and name.
         Cursor c = app.getActivity().getContentResolver().query(
-            asSyncAdapter(Calendars.CONTENT_URI, accountType, accountName),
+            Calendars.CONTENT_URI,
             CALENDAR_ROWS,
             "( " + Calendars.ACCOUNT_NAME + " = ? ) AND ( " +
             Calendars.ACCOUNT_TYPE + " = ? )",
             new String[] { accountName, accountType },
             null
         );
-
+        Log.d(LOG_TAG, "GetCalendars, after cursor.");
         // Convert to JSON.
         return rows2JSONArray(c, CALENDAR_ROWS);
+    }
+
+    public String addCalendar(JSONObject calendar, String accountType, String accountName) {
+        Uri uri = app.getActivity().getContentResolver().insert(
+            asSyncAdapter(Calendars.CONTENT_URI, accountType, accountName),
+            json2Row(calendar, CALENDAR_ROWS)
+        );
+        return uri.getLastPathSegment();
+    }
+
+    public int deleteCalendar(JSONObject calendar, String accountType, String accountName) {
+        try {
+            ContentResolver cr = app.getActivity().getContentResolver();
+            return cr.delete(
+                asSyncAdapter(Calendars.CONTENT_URI, accountType, accountName),
+                Calendars._ID + " = ? ",
+                new String[] { String.valueOf(calendar.getLong(Calendars._ID)) }
+            );
+        } catch (JSONException e) {
+            Log.w(LOG_TAG, e);
+            return -1;
+        }
     }
 
     ////// Queries.
@@ -261,19 +294,49 @@ public class CalendarAccessor {
     }
 
     /** Fetch all event of the specified account, by calendars */
-    public JSONArray all(String accountType, String accountName, boolean dirtiesOnly) {
+    public JSONArray all(String accountType, String accountName) {
         JSONArray calendars = getCalendars(accountType, accountName);
 
         for (int i = 0; i < calendars.length(); i++) {
             try {
                 JSONObject calendar = calendars.getJSONObject(i);
-                calendar.put("events", getEvents(calendar.getInt(Calendars._ID),    dirtiesOnly));
+                calendar.put("events", getEvents(calendar.getInt(Calendars._ID),
+                    false));
             } catch (JSONException e) { Log.w(LOG_TAG, e); }
         }
 
         return calendars;
     }
 
+    /** Fetch all dirty events of the specified account */
+    public JSONArray dirtyEvents(String accountType, String accountName) {
+        JSONArray calendars = getCalendars(accountType, accountName);
+
+        String[] calendarIds = new String[calendars.length()];
+        for (int i = 0; i < calendars.length(); i++) {
+            try {
+                calendarIds[i] = String.valueOf(
+                    calendars.getJSONObject(i).getLong(Calendars._ID));
+            } catch (JSONException e) {
+                Log.w(LOG_TAG, e);
+                return null;
+            }
+        }
+
+        Cursor c = app.getActivity().getContentResolver().query(
+            Events.CONTENT_URI,
+            EVENT_ROWS,
+            // no android way to user 'in' operator with parameters.
+            "( " + Events.CALENDAR_ID + " in ( " + TextUtils.join(",", calendarIds) +
+            " )) AND ( "  + Events.DIRTY + " = 1 )",
+            null,
+            null
+        );
+
+        JSONArray events = eventsRows2JSONArray(c);
+        c.close();
+        return events;
+    }
 
     /** Fetch all the events of the specified calendar */
     private JSONArray getEvents(int calendarId, boolean dirtiesOnly) {
@@ -292,6 +355,25 @@ public class CalendarAccessor {
         return result;
     }
 
+    public JSONArray eventBySyncId(String syncId) {
+        Cursor c = app.getActivity().getContentResolver().query(
+            Events.CONTENT_URI,
+            EVENT_ROWS,
+            "( " + Events._SYNC_ID + " = ? )",
+            new String[] { syncId },
+            null
+        );
+
+        JSONArray result = eventsRows2JSONArray(c);
+        c.close();
+
+        return result;
+        // try {
+        //     return result.getJSONObject(0);
+        // } catch (JSONException e) {
+        //     return null;
+        // }
+    }
 
     //////////////////////////// Add
 
@@ -358,8 +440,10 @@ public class CalendarAccessor {
     private ContentValues json2Row(JSONObject o, String[] rowNames) {
         ContentValues result = new ContentValues();
         for (String name: rowNames) {
+
             Object v = o.opt(name);
             if (v == null) {
+                // TODO
                 // result.putNull(name);
                 continue;
             } else if (v instanceof String) {
@@ -371,6 +455,8 @@ public class CalendarAccessor {
             } else if (v instanceof Float || v instanceof Double) {
                 result.put(name, ((Number)v).doubleValue());
             } else if (JSONObject.NULL.equals(v)) {
+                // TODO
+
                 // result.putNull(name);
                 continue;
 
@@ -426,9 +512,10 @@ public class CalendarAccessor {
 
     }
 
-
-    public void undirty(JSONObject event, String accountType, String accountName) {
-
+    /** Update sync fields on the specified event, setting dirty to 0
+    */
+    public void undirtyEvent(JSONObject event, String accountType, String accountName) {
+        String eventID = null;
         try {
             eventID = String.valueOf(event.getInt(Events._ID));
         } catch (JSONException e) {
@@ -436,21 +523,50 @@ public class CalendarAccessor {
             return;
         }
 
-        ContentValues values = new ContentValues();
+        String[] syncRows = new String[] {
+            Events.DELETED,
+            Events.MUTATORS,
+            Events._SYNC_ID,
+            Events.SYNC_DATA1,
+            Events.SYNC_DATA2,
+            Events.SYNC_DATA3,
+            Events.SYNC_DATA4,
+            Events.SYNC_DATA5,
+            Events.SYNC_DATA6,
+            Events.SYNC_DATA7,
+            Events.SYNC_DATA8,
+            Events.SYNC_DATA9,
+            Events.SYNC_DATA10
+        };
+
+        ContentValues values = json2Row(event, syncRows);
         values.put(Events.DIRTY, 0);
 
         app.getActivity().getContentResolver().update(
             asSyncAdapter(Events.CONTENT_URI, accountType, accountName),
             values,
             Events._ID + " = ? ",
-            new String[] { eventID },
+            new String[] { eventID }
         );
     }
+
     // Update : update row.
     // delete reminders; delete attendees,
     // add reminders, add attendees if necessary.
 
     // Delete : relationnal auto delete attendee ?
+
+    public int deleteEvent(JSONObject event, String accountType, String accountName) {
+        try {
+            ContentResolver cr = app.getActivity().getContentResolver();
+            return cr.delete(
+                asSyncAdapter(Events.CONTENT_URI, accountType, accountName),
+                Events._ID + " = ? ",
+                new String[] { String.valueOf(event.getLong(Events._ID)) }
+            );
+        } catch (JSONException e) {
+            Log.w(LOG_TAG, e);
+            return -1;
+        }
+    }
 }
-
-
