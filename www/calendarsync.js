@@ -101,10 +101,10 @@ var calendarsync = {
         argscheck.checkArgs('fF', 'calendarsync.listDirty', arguments);
         exec(successCB, errorCB, "CalendarSync", "listDirty", []);
     },
-    all: function(accountType, accountName, successCB, errorCB) {
-        argscheck.checkArgs('ssfF', 'calendarsync.all', arguments);
-        exec(successCB, errorCB, 'CalendarSync', 'all',
-            [accountType, accountName]);
+    all: function(options, callback) {
+        argscheck.checkArgs('of', 'calendarsync.all', arguments);
+        exec(successCB(callback), callback, 'CalendarSync', 'all',
+            [options.accountType, options.accountName]);
 
     },
 
