@@ -50,6 +50,8 @@ import android.provider.CalendarContract.Events;
 public class CalendarSyncManager extends CordovaPlugin {
 
     private CalendarAccessor calendarAccessor;
+    private EventAccessor eventAccessor;
+
     private CallbackContext callbackContext;        // The callback context from which we were invoked.
     private JSONArray executeArgs;
 
@@ -85,49 +87,59 @@ public class CalendarSyncManager extends CordovaPlugin {
 
         // Create calendarAccessor as a singleton.
         if (calendarAccessor == null) {
-            calendarAccessor = new CalendarAccessor(cordova);
+            CalendarAccessor.initInstance(cordova);
+            calendarAccessor = CalendarAccessor.getInstance();
+            EventAccessor.initInstance(cordova);
+            eventAccessor = EventAccessor.getInstance();
         }
 
         // Events methods.
         if (action.equals("all")) {
             final String accountType = args.getString(0);
             final String accountName = args.getString(1);
-            JSONArray calendars = calendarAccessor.all(accountType, accountName);
+            JSONArray calendars = eventAccessor.all(accountType, accountName);
 
             callbackContext.success(calendars);
-        }
-        else if (action.equals("dirtyEvents")) {
+
+        } else if (action.equals("allEvents")) {
             final String accountType = args.getString(0);
             final String accountName = args.getString(1);
-            JSONArray events = calendarAccessor.dirtyEvents(
+            JSONArray events = eventAccessor.allEvents(accountType, accountName);
+
+            callbackContext.success(events);
+
+        } else if (action.equals("dirtyEvents")) {
+            final String accountType = args.getString(0);
+            final String accountName = args.getString(1);
+            JSONArray events = eventAccessor.dirtyEvents(
                 accountType, accountName);
 
             callbackContext.success(events);
 
         } else if (action.equals("eventBySyncId")) {
             final String syncId = args.getString(0);
-            JSONArray events = calendarAccessor.eventBySyncId(syncId);
+            JSONArray events = eventAccessor.eventBySyncId(syncId);
             callbackContext.success(events);
 
         } else if (action.equals("addEvent")) {
             final JSONObject event = args.getJSONObject(0);
             final String accountType = args.getString(1);
             final String accountName = args.getString(2);
-            String eventId = calendarAccessor.addEvent(event, accountType, accountName);
+            String eventId = eventAccessor.addEvent(event, accountType, accountName);
             callbackContext.success(eventId);
 
         } else if (action.equals("updateEvent")) {
             final JSONObject event = args.getJSONObject(0);
             final String accountType = args.getString(1);
             final String accountName = args.getString(2);
-            calendarAccessor.updateEvent(event, accountType, accountName);
+            eventAccessor.updateEvent(event, accountType, accountName);
             callbackContext.success();
 
         } else if (action.equals("undirtyEvent")) {
             final JSONObject event = args.getJSONObject(0);
             final String accountType = args.getString(1);
             final String accountName = args.getString(2);
-            calendarAccessor.undirtyEvent(event, accountType, accountName);
+            eventAccessor.undirtyEvent(event, accountType, accountName);
             callbackContext.success();
 
 
@@ -135,7 +147,7 @@ public class CalendarSyncManager extends CordovaPlugin {
             final JSONObject event = args.getJSONObject(0);
             final String accountType = args.getString(1);
             final String accountName = args.getString(2);
-            int deletedCount = calendarAccessor.deleteEvent(event, accountType, accountName);
+            int deletedCount = eventAccessor.deleteEvent(event, accountType, accountName);
             callbackContext.success(deletedCount);
 
         // Calendars methods.
@@ -151,6 +163,14 @@ public class CalendarSyncManager extends CordovaPlugin {
             final String accountName = args.getString(2);
             String calendarId = calendarAccessor.addCalendar(calendar, accountType, accountName);
             callbackContext.success(calendarId);
+
+        } else if (action.equals("updateCalendar")) {
+            final JSONObject calendar = args.getJSONObject(0);
+            final String accountType = args.getString(1);
+            final String accountName = args.getString(2);
+            calendarAccessor.updateCalendar(calendar,
+                                    accountType, accountName);
+            callbackContext.success();
 
         } else if (action.equals("deleteCalendar")) {
             final JSONObject calendar = args.getJSONObject(0);
