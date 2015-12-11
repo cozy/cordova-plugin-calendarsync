@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import android.net.Uri;
 import android.database.Cursor;
 import android.content.ContentResolver;
-
 import android.provider.CalendarContract.Calendars;
 
 import org.apache.cordova.CordovaInterface;
@@ -30,12 +29,12 @@ public class CalendarAccessor {
         Calendars.CALENDAR_COLOR,
         Calendars._SYNC_ID,
         Calendars.DIRTY,
-        Calendars.MUTATORS,
+        //Calendars.MUTATORS, since 18 !
         Calendars.OWNER_ACCOUNT,
         Calendars.MAX_REMINDERS,
         Calendars.ALLOWED_REMINDERS,
-        Calendars.ALLOWED_AVAILABILITY,
-        Calendars.ALLOWED_ATTENDEE_TYPES,
+        //Calendars.ALLOWED_AVAILABILITY,
+        //Calendars.ALLOWED_ATTENDEE_TYPES,
         Calendars.CAN_MODIFY_TIME_ZONE,
         Calendars.CAN_ORGANIZER_RESPOND,
         Calendars.CAN_PARTIALLY_UPDATE,

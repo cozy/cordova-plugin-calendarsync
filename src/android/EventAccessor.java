@@ -58,12 +58,12 @@ public class EventAccessor {
         Events.GUESTS_CAN_MODIFY,
         Events.GUESTS_CAN_INVITE_OTHERS,
         Events.GUESTS_CAN_SEE_GUESTS,
-        Events.CUSTOM_APP_PACKAGE,
-        Events.CUSTOM_APP_URI,
-        Events.UID_2445,
+        //Events.CUSTOM_APP_PACKAGE,
+        //Events.CUSTOM_APP_URI,
+        //Events.UID_2445,
         Events.DIRTY,
         Events.DELETED,
-        Events.MUTATORS,
+        //Events.MUTATORS, since 18!
         Events._SYNC_ID,
         Events.SYNC_DATA1,
         Events.SYNC_DATA2,
@@ -85,8 +85,8 @@ public class EventAccessor {
         Attendees.ATTENDEE_RELATIONSHIP,
         Attendees.ATTENDEE_TYPE,
         Attendees.ATTENDEE_STATUS,
-        Attendees.ATTENDEE_IDENTITY,
-        Attendees.ATTENDEE_ID_NAMESPACE
+        //Attendees.ATTENDEE_IDENTITY,
+        //Attendees.ATTENDEE_ID_NAMESPACE
     };
 
     private static final String[] REMINDER_COLUMNS = new String[] {
