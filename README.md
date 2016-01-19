@@ -1,12 +1,12 @@
 # Calendar Sync
 ## Cordova calendar syncadapter plugin
 
-wip...
+Manipulate calendars and events as a sync adapter on android, trough a cordova javascript interface.
 
 ## License
 
-CalendarSync is developed by Cozy Cloud and distributed under the AGPL v3 license.
-
+[MIT](https://github.com/cozy/cordova-plugin-calendarsync
+/blob/master/LICENSE.md)
 
 ## What is Cozy?
 
