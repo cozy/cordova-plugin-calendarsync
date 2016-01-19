@@ -14,23 +14,19 @@ var calendarsync = {
         argscheck.checkArgs('of', 'calendarsync.all', arguments);
         exec(successCB(callback), callback, 'CalendarSync', 'all',
             [options.accountType, options.accountName]);
-
     },
 
     allEvents: function(options, callback) {
         argscheck.checkArgs('of', 'calendarsync.allEvents', arguments);
         exec(successCB(callback), callback, 'CalendarSync', 'allEvents',
             [options.accountType, options.accountName]);
-
     },
-
 
     dirtyEvents: function(options, callback) {
         argscheck.checkArgs('of', 'calendarsync.dirtyEvents', arguments);
         exec(successCB(callback), callback, 'CalendarSync', 'dirtyEvents',
             [options.accountType, options.accountName]);
     },
-
 
     eventBySyncId: function(syncId, callback) {
         argscheck.checkArgs('sf', 'calendarsync.eventBySyncId', arguments);
@@ -85,7 +81,6 @@ var calendarsync = {
         exec(successCB(callback), callback, 'CalendarSync', 'deleteCalendar',
             [calendar, options.accountType, options.accountName]);
     }
-
 
 };
 

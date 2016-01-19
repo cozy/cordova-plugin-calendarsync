@@ -2,14 +2,14 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="io.cozy.calendarsync"
-    version="0.0.1-dev">
+    version="1.0.0">
 
     <name>CalendarSync</name>
     <description>Cordova calendar syncadapter plugin</description>
     <license>AGPL v3</license>
     <keywords>cordova,calendars</keywords>
-    <repo>https://github.com/jacquarg/cordova-plugin-calendarsync.git</repo>
-    <issue>https://github.com/jacquarg/cordova-plugin-calendarsync/issues</issue>
+    <repo>https://github.com/cozy/cordova-plugin-calendarsync.git</repo>
+    <issue>https://github.com/cozy/cordova-plugin-calendarsync/issues</issue>
 
     <js-module src="www/calendarsync.js" name="calendarsync">
         <clobbers target="navigator.calendarsync" />
