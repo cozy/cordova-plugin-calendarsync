@@ -21,8 +21,6 @@ package io.cozy.calendarsync.syncadapter;
 // import com.example.android.samplesync.client.RawContact;
 // import com.example.android.samplesync.platform.ContactManager;
 
-import org.apache.http.ParseException;
-import org.apache.http.auth.AuthenticationException;
 import org.json.JSONException;
 
 import android.accounts.Account;
